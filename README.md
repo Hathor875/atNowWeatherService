@@ -8,7 +8,7 @@ This project aims to create a website that allows users to check the temperature
 - **Database**: MongoDB
 - **API**: OpenAPI 3.0
 - **Frontend**: JavaScript, HTML, CSS
-- **Embedded**: ESP2688 with AHT20 and BMP280 sensors
+- **Embedded**: ESP2688 with AHT20 and BMP280 sensors programmed in C++ with arduino framework
 - **Charts and analysis**: Python
 
 ## Features
