@@ -1,4 +1,4 @@
-# atNowWeatherService
+# 🌦️ atNowWeatherService 🌡️
 
 This project aims to create a website that allows users to check the temperature, pressure, and humidity in real-time using small ESP32 sensors. The environmental data can be accessed either through a web application or via an API. Additionally, the project will generate analysis reports and charts based on the collected data.
 
@@ -40,3 +40,4 @@ Contributions are welcome! If you'd like to contribute to this project, please f
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
+
