@@ -35,7 +35,7 @@ The project utilizes ESP2688 microcontroller with built-in Wi-Fi and the followi
   - Pressure Measurement Accuracy: ±0.12hPa @25°C
 
 ## In Progress
-- **HTTPS SERVER ON ES**: a server that allows you to scan WiFi and connect to a given network. 
+- **HTTPS SERVER ON ESP**: a server that allows you to scan WiFi and connect to a given network. 
 
 ## To Do
 
