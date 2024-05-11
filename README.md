@@ -8,7 +8,8 @@ This project aims to create a website that allows users to check the temperature
 - **Database**: MongoDB
 - **API**: OpenAPI 3.0
 - **Frontend**: JavaScript, HTML, CSS
-- **Embedded**: ESP32 with AHT20 and BMP280 sensors
+- **Embedded**: ESP2688 with AHT20 and BMP280 sensors
+- **Charts and analysis**: Python
 
 ## Features
 
@@ -19,7 +20,7 @@ This project aims to create a website that allows users to check the temperature
 
 ## Embedded
 
-The project utilizes ESP32 microcontroller with built-in Wi-Fi and the following sensors:
+The project utilizes ESP2688 microcontroller with built-in Wi-Fi and the following sensors:
 - AHT20: Temperature and Humidity Sensor
   - Temperature Measurement Range: -40°C to 85°C
   - Temperature Measurement Accuracy: ±0.3°C
@@ -32,6 +33,9 @@ The project utilizes ESP32 microcontroller with built-in Wi-Fi and the following
   - Temperature Measurement Resolution: 0.01°C
   - Pressure Measurement Range: 300hPa to 1300hPa
   - Pressure Measurement Accuracy: ±0.12hPa @25°C
+
+## In Progress
+- **HTTPS SERVER ON ES**: a server that allows you to scan WiFi and connect to a given network. 
 
 ## To Do
 
