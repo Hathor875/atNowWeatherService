@@ -33,6 +33,14 @@ The project utilizes ESP32 microcontroller with built-in Wi-Fi and the following
   - Pressure Measurement Range: 300hPa to 1300hPa
   - Pressure Measurement Accuracy: ±0.12hPa @25°C
 
+## To Do
+
+- **Start Project**: Set up project structure and environment.
+- **Roadmap**: Define project milestones and timeline.
+- **First Working Prototype**: Develop embedded system with temperature measurement functionality only.
+- **First Backend Version**: Implement backend to receive and display temperature in a simple HTML page, and store it in the database.
+- **API**: Create a RESTful API to access environmental data.
+
 ## Contributing 🚀
 
 Contributions are welcome! If you'd like to contribute to this project, please fork the repository and submit a pull request with your changes. Additional contributions are appreciated after the project is launched and basic functionalities are in place.
@@ -40,4 +48,5 @@ Contributions are welcome! If you'd like to contribute to this project, please f
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
+
 
