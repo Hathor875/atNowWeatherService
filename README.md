@@ -35,7 +35,18 @@ The project utilizes ESP2688 microcontroller with built-in Wi-Fi and the followi
   - Pressure Measurement Accuracy: ±0.12hPa @25°C
 
 ## In Progress
-- **HTTPS SERVER ON ESP**: a server that allows you to scan WiFi and connect to a given network. 
+- **HTTPS SERVER ON ESP**:
+Now the device starts in AP mode with the given name and password set in the program.
+At the address 192.168.1.1 we have a service that allows you to log in to the selected Wi-Fi network.
+to do:
+- rewriting to https
+-saving the password, network name and configuration to eeprom
+-handling the case of wrong WiFi password etc
+-restore after connection loss
+-signaling connection status
+
+Moreover, the LED flashing has been modified to use the built-in timer, but this still needs to be improved.
+Also need to add the reset function to factory settings using the button
 
 ## To Do
 
