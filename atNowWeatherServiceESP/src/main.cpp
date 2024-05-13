@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <EEPROM.h>
 
 const char *ssid = "atNowSensor";
 const char *password = "12345678";
@@ -11,6 +12,11 @@ IPAddress netMsk(255, 255, 255, 0);
 int ledPin = 2;
 
 ESP8266WebServer server(80);
+
+struct saved_wifi{
+  String name;
+  String password;
+};
 
 struct wifi_network
 {
@@ -32,6 +38,33 @@ void ledBlink(int speed)
   analogWrite(ledPin, 0);
   delay(speed / 2);
 }
+
+saved_wifi readWiFiFromEEPROM(){
+saved_wifi wifi;
+bool is_save = 0; 
+EEPROM.get(0,is_save);
+if(is_save){
+ EEPROM.get(1,wifi);
+return wifi;
+}
+else 
+
+return wifi;
+}
+
+
+bool saveWiFiToEEPROM(saved_wifi wifi){
+EEPROM.begin(28);
+delay(100);
+EEPROM.put(0,true);
+EEPROM.put(1,wifi);
+ Serial.print(readWiFiFromEEPROM().name);
+  Serial.print(readWiFiFromEEPROM().password);
+return true;
+}
+
+
+
 
 wifi_network *scanWiFiNetworks()
 {
@@ -179,7 +212,12 @@ void handleConnect()
 {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
-
+  saved_wifi saved;
+  saved.name = ssid;
+  saved.password = password;
+  saveWiFiToEEPROM(saved);
+    Serial.print(readWiFiFromEEPROM().name);
+  Serial.print(readWiFiFromEEPROM().password);
   WiFi.begin(ssid.c_str(), password.c_str());
 
   unsigned long startTime = millis();
@@ -205,10 +243,11 @@ void handleConnect()
 
   server.sendHeader("Content-Type", "text/html; charset=utf-8");
   server.send(200, "text/html", connectedPage);
-
+  
   WiFi.softAPdisconnect(true);
 
   digitalWrite(ledPin, LOW);
+
 }
 
 void rescanWiFi()
@@ -249,9 +288,12 @@ void setup()
   server.on("/rescan", rescanWiFi);
   server.onNotFound(handleNotFound);
   server.begin();
+  Serial.print(sizeof(wifi_network));
+ 
 }
 
 void loop()
 {
   server.handleClient();
+  
 }
