@@ -40,10 +40,10 @@ Now the device starts in AP mode with the given name and password set in the pro
 At the address 192.168.1.1 we have a service that allows you to log in to the selected Wi-Fi network.
 to do:
   - rewriting to https
-  -saving the password, network name and configuration to eeprom
-  -handling the case of wrong WiFi password etc
-  -restore after connection loss
-  -signaling connection status
+  - saving the password, network name and configuration to eeprom
+  - handling the case of wrong WiFi password etc
+  - restore after connection loss
+  - signaling connection status
 
 Moreover, the LED flashing has been modified to use the built-in timer, but this still needs to be improved.
 Also need to add the reset function to factory settings using the button
