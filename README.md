@@ -44,6 +44,7 @@ to do:
   - handling the case of wrong WiFi password etc
   - restore after connection loss
   - signaling connection status
+  - add media query to css 
 
 Moreover, the LED flashing has been modified to use the built-in timer, but this still needs to be improved.
 Also need to add the reset function to factory settings using the button
