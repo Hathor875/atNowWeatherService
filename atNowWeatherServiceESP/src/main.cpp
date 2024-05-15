@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <EEPROM.h>
 
 const char *ssid = "atNowSensor";
 const char *password = "12345678";
@@ -12,6 +13,11 @@ int ledPin = 2;
 
 ESP8266WebServer server(80);
 
+struct saved_wifi
+{
+  char name[32];
+  char password[64];
+};
 struct wifi_network
 {
   String name;
@@ -31,6 +37,37 @@ void ledBlink(int speed)
   delay(speed / 2);
   analogWrite(ledPin, 0);
   delay(speed / 2);
+}
+
+saved_wifi readWiFiFromEEPROM()
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  saved_wifi wifi;
+  bool is_saved = false;
+  EEPROM.get(0, is_saved);
+  if (is_saved)
+  {
+    EEPROM.get(1, wifi);
+    
+  }
+  else
+  {
+    saved_wifi error;
+    error.name[0] = 'x';
+    error.password[0] = 'x';
+    return error;
+  }
+  return wifi;
+}
+
+bool saveWiFiToEEPROM(saved_wifi wifi)
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  
+  EEPROM.put(0, true);
+  EEPROM.put(1, wifi);
+  EEPROM.commit(); 
+  return true;
 }
 
 wifi_network *scanWiFiNetworks()
@@ -179,13 +216,20 @@ void handleConnect()
 {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
-
+  saved_wifi saved;
+  strncpy(saved.name, ssid.c_str(), sizeof(saved.name));
+  saved.name[sizeof(saved.name) - 1] = '\0';
+  strncpy(saved.password, password.c_str(), sizeof(saved.password));
+  saved.password[sizeof(saved.password) - 1] = '\0';
+  saveWiFiToEEPROM(saved);
   WiFi.begin(ssid.c_str(), password.c_str());
 
   unsigned long startTime = millis();
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
-    if (millis() - startTime > 10000) {
+    if (millis() - startTime > 10000)
+    {
       server.send(500, "text/plain", "Connection timeout!");
       return;
     }
@@ -216,9 +260,14 @@ void rescanWiFi()
   WiFi.scanNetworks(true);
   server.sendHeader("Location", "/");
   server.send(303);
+
+  
+
 }
 
-void handleNotFound() {
+void handleNotFound()
+{
+ 
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -228,7 +277,8 @@ void handleNotFound() {
   message += server.args();
   message += "\n";
 
-  for (uint8_t i = 0; i < server.args(); i++) {
+  for (uint8_t i = 0; i < server.args(); i++)
+  {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
 
@@ -237,6 +287,7 @@ void handleNotFound() {
 
 void setup()
 {
+  EEPROM.begin(sizeof(saved_wifi) + 1);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
@@ -249,9 +300,11 @@ void setup()
   server.on("/rescan", rescanWiFi);
   server.onNotFound(handleNotFound);
   server.begin();
+  
 }
 
 void loop()
 {
   server.handleClient();
+
 }
