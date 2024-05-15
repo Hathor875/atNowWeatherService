@@ -13,12 +13,13 @@ int ledPin = 2;
 
 ESP8266WebServer server(80);
 
-struct saved_wifi {
-  String name;
-  String password;
+struct saved_wifi
+{
+  char name[32];
+  char password[64];
 };
-
-struct wifi_network {
+struct wifi_network
+{
   String name;
   unsigned short channel;
   short quality;
@@ -28,7 +29,8 @@ const int MAX_NETWORKS = 255;
 
 void timerISR() {}
 
-void ledBlink(int speed) {
+void ledBlink(int speed)
+{
   analogWrite(ledPin, 0);
   delay(100);
   analogWrite(ledPin, 255);
@@ -37,44 +39,45 @@ void ledBlink(int speed) {
   delay(speed / 2);
 }
 
-saved_wifi readWiFiFromEEPROM(){
-    saved_wifi wifi;
-    bool is_saved = false;
-    EEPROM.get(0, is_saved);
-    if (is_saved) {
-        EEPROM.get(1, wifi);
-        Serial.println("Read SSID from EEPROM:");
-        Serial.println(wifi.name);
-        Serial.println("Read password from EEPROM:");
-        for (size_t i = 0; i < wifi.password.length(); ++i) {
-            Serial.print(wifi.password[i], HEX);
-            Serial.print(" ");
-        }
-        Serial.println();
-    } else {
-        wifi.name = "x";
-        wifi.password = "x";
-    }
-    return wifi;
+saved_wifi readWiFiFromEEPROM()
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  saved_wifi wifi;
+  bool is_saved = false;
+  EEPROM.get(0, is_saved);
+  if (is_saved)
+  {
+    EEPROM.get(1, wifi);
+    
+  }
+  else
+  {
+    saved_wifi error;
+    error.name[0] = 'x';
+    error.password[0] = 'x';
+    return error;
+  }
+  return wifi;
 }
 
-
-bool saveWiFiToEEPROM(saved_wifi wifi) {
-  EEPROM.begin(sizeof(saved_wifi)+1);
-  delay(100);
+bool saveWiFiToEEPROM(saved_wifi wifi)
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  
   EEPROM.put(0, true);
   EEPROM.put(1, wifi);
-  EEPROM.commit(); // Zapisz dane do pamięci EEPROM
-  Serial.println("Data saved to EEPROM");
+  EEPROM.commit(); 
   return true;
 }
 
-wifi_network *scanWiFiNetworks() {
+wifi_network *scanWiFiNetworks()
+{
   ledBlink(100);
   int numNetworks = WiFi.scanNetworks();
   wifi_network *networks = new wifi_network[numNetworks];
   ledBlink(10);
-  for (int i = 0; i < numNetworks; ++i) {
+  for (int i = 0; i < numNetworks; ++i)
+  {
     String ssid = WiFi.SSID(i);
     int channel = WiFi.channel(i);
     int quality = WiFi.RSSI(i);
@@ -87,38 +90,46 @@ wifi_network *scanWiFiNetworks() {
   return networks;
 }
 
-wifi_network *sortWiFiNetworks(wifi_network networks[], int count) {
-  std::sort(networks, networks + count, [](const wifi_network &a, const wifi_network &b) {
-    return a.quality > b.quality;
-  });
+wifi_network *sortWiFiNetworks(wifi_network networks[], int count)
+{
+  std::sort(networks, networks + count, [](const wifi_network &a, const wifi_network &b)
+            { return a.quality > b.quality; });
 
   return networks;
 }
 
-int dBmToPercentage(int dBm) {
+int dBmToPercentage(int dBm)
+{
   const int RSSI_MIN = -100;
   const int RSSI_MAX = -50;
 
   int quality;
 
-  if (dBm <= RSSI_MIN) {
+  if (dBm <= RSSI_MIN)
+  {
     quality = 0;
-  } else if (dBm >= RSSI_MAX) {
+  }
+  else if (dBm >= RSSI_MAX)
+  {
     quality = 100;
-  } else {
+  }
+  else
+  {
     quality = map(dBm, RSSI_MIN, RSSI_MAX, 0, 100);
   }
 
   return quality;
 }
 
-void wifiConnect() {
+void wifiConnect()
+{
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(ssid, password);
 }
 
-void homePage() {
+void homePage()
+{
   wifi_network *networks = scanWiFiNetworks();
   networks = sortWiFiNetworks(networks, WiFi.scanComplete());
   String page = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
@@ -137,7 +148,8 @@ void homePage() {
   page += "<table>";
   page += "<tr><th>Network Name</th><th>Channel</th><th>Quality (%)</th></tr>";
 
-  for (int i = 0; i < WiFi.scanComplete(); ++i) {
+  for (int i = 0; i < WiFi.scanComplete(); ++i)
+  {
     page += "<tr>";
     page += "<td><a href=\"/connect?ssid=" + networks[i].name + "\">" + networks[i].name + "</a></td>";
     page += "<td>";
@@ -146,11 +158,16 @@ void homePage() {
     page += "<td>";
 
     int quality = dBmToPercentage(networks[i].quality);
-    if (quality >= 0 && quality <= 25) {
+    if (quality >= 0 && quality <= 25)
+    {
       page += "<span class=\"red\">&#x25CF;</span>";
-    } else if (quality > 25 && quality <= 50) {
+    }
+    else if (quality > 25 && quality <= 50)
+    {
       page += "<span class=\"orange\">&#x25CF;</span>";
-    } else {
+    }
+    else
+    {
       page += "<span class=\"green\">&#x25CF;</span>";
     }
 
@@ -168,7 +185,8 @@ void homePage() {
   delete[] networks;
 }
 
-void connectToWiFiPage() {
+void connectToWiFiPage()
+{
   String ssid = server.arg("ssid");
   String page = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
   page += "<style>";
@@ -194,19 +212,24 @@ void connectToWiFiPage() {
   server.send(200, "text/html", page);
 }
 
-void handleConnect() {
+void handleConnect()
+{
   String ssid = server.arg("ssid");
   String password = server.arg("password");
   saved_wifi saved;
-  saved.name = ssid;
-  saved.password = password;
+  strncpy(saved.name, ssid.c_str(), sizeof(saved.name));
+  saved.name[sizeof(saved.name) - 1] = '\0';
+  strncpy(saved.password, password.c_str(), sizeof(saved.password));
+  saved.password[sizeof(saved.password) - 1] = '\0';
   saveWiFiToEEPROM(saved);
   WiFi.begin(ssid.c_str(), password.c_str());
 
   unsigned long startTime = millis();
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
-    if (millis() - startTime > 10000) {
+    if (millis() - startTime > 10000)
+    {
       server.send(500, "text/plain", "Connection timeout!");
       return;
     }
@@ -232,13 +255,19 @@ void handleConnect() {
   digitalWrite(ledPin, LOW);
 }
 
-void rescanWiFi() {
+void rescanWiFi()
+{
   WiFi.scanNetworks(true);
   server.sendHeader("Location", "/");
   server.send(303);
+
+  
+
 }
 
-void handleNotFound() {
+void handleNotFound()
+{
+ 
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -248,14 +277,17 @@ void handleNotFound() {
   message += server.args();
   message += "\n";
 
-  for (uint8_t i = 0; i < server.args(); i++) {
+  for (uint8_t i = 0; i < server.args(); i++)
+  {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
 
   server.send(404, "text/plain", message);
 }
 
-void setup() {
+void setup()
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
@@ -268,14 +300,11 @@ void setup() {
   server.on("/rescan", rescanWiFi);
   server.onNotFound(handleNotFound);
   server.begin();
+  
 }
 
-void loop() {
+void loop()
+{
   server.handleClient();
-  delay(1000);
-  saved_wifi wifi = readWiFiFromEEPROM();
-  Serial.print("Read SSID from EEPROM: ");
-  Serial.println(wifi.name);
-  Serial.print("Read password from EEPROM: ");
-  Serial.println(wifi.password);
+
 }
