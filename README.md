@@ -46,7 +46,7 @@ The project utilizes ESP2688 microcontroller with built-in Wi-Fi and the followi
       - handling the case of wrong WiFi password etc
       - restore after connection loss
       - signaling connection status
-      - add simple media query to css
+      - add simple media query to css to improve display on mobile devices
       - change login to wifi animation
       - correct display of the page about successful Wi-Fi connection
 
