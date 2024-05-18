@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <EEPROM.h>
 
 const char *ssid = "atNowSensor";
 const char *password = "12345678";
@@ -12,6 +13,11 @@ int ledPin = 2;
 
 ESP8266WebServer server(80);
 
+struct saved_wifi
+{
+  char name[32];
+  char password[64];
+};
 struct wifi_network
 {
   String name;
@@ -33,6 +39,35 @@ void ledBlink(int speed)
   delay(speed / 2);
 }
 
+saved_wifi readWiFiFromEEPROM()
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  saved_wifi wifi;
+  bool is_saved = false;
+  EEPROM.get(0, is_saved);
+  if (is_saved)
+  {
+    EEPROM.get(1, wifi);
+  }
+  else
+  {
+    saved_wifi error;
+    error.name[0] = 'x';
+    error.password[1] = '\0'; // correct password must have not null 8 character 
+    return error;
+  }
+  return wifi;
+}
+
+bool saveWiFiToEEPROM(saved_wifi wifi)
+{
+  EEPROM.begin(sizeof(saved_wifi) + 1);
+  EEPROM.put(0, true);
+  EEPROM.put(1, wifi);
+  EEPROM.commit();
+  return true;
+}
+
 wifi_network *scanWiFiNetworks()
 {
   ledBlink(100);
@@ -44,7 +79,6 @@ wifi_network *scanWiFiNetworks()
     String ssid = WiFi.SSID(i);
     int channel = WiFi.channel(i);
     int quality = WiFi.RSSI(i);
-
     networks[i].name = ssid;
     networks[i].channel = channel;
     networks[i].quality = quality;
@@ -84,12 +118,7 @@ int dBmToPercentage(int dBm)
   return quality;
 }
 
-void wifiConnect()
-{
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(ssid, password);
-}
+
 
 void homePage()
 {
@@ -170,27 +199,40 @@ void connectToWiFiPage()
   page += "</form>";
   page += "<br><a href=\"/\">Rescan WiFi Networks</a>";
   page += "</body></html>";
-
   server.sendHeader("Content-Type", "text/html; charset=utf-8");
   server.send(200, "text/html", page);
 }
+
+
+
+void apClient(saved_wifi wifi){
+  String ssid = wifi.name;
+  String password = wifi.password;
+  strncpy(wifi.name, ssid.c_str(), sizeof(wifi.name));
+  wifi.name[sizeof(wifi.name) - 1] = '\0';
+  strncpy(wifi.password, password.c_str(), sizeof(wifi.password));
+  wifi.password[sizeof(wifi.password) - 1] = '\0';
+  saveWiFiToEEPROM(wifi);
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  unsigned long startTime = millis();
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    if (millis() - startTime > 10000)
+    {
+      server.send(500, "text/plain", "Connection timeout!");
+      return;
+    }
+    Serial.print(WiFi.localIP());
+}}
 
 void handleConnect()
 {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
-
-  WiFi.begin(ssid.c_str(), password.c_str());
-
-  unsigned long startTime = millis();
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    if (millis() - startTime > 10000) {
-      server.send(500, "text/plain", "Connection timeout!");
-      return;
-    }
-  }
-
+  saved_wifi saved;
+  apClient(saved);
   String connectedPage = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">";
   connectedPage += "<style>";
   connectedPage += "body { font-family: Arial, sans-serif; background-color: #f0f0f0; }";
@@ -218,7 +260,9 @@ void rescanWiFi()
   server.send(303);
 }
 
-void handleNotFound() {
+void handleNotFound()
+{
+
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -228,21 +272,48 @@ void handleNotFound() {
   message += server.args();
   message += "\n";
 
-  for (uint8_t i = 0; i < server.args(); i++) {
+  for (uint8_t i = 0; i < server.args(); i++)
+  {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
 
   server.send(404, "text/plain", message);
 }
 
+
+
+void apServer()
+{
+  WiFi.mode(WIFI_AP_STA);
+
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+
+  WiFi.softAP(ssid, password);
+}
+
+void startWiFi()
+{
+  saved_wifi wifi = readWiFiFromEEPROM();
+  if (wifi.password[1] != '\0')
+  {
+    Serial.print("starting ap server");
+    apServer();
+  }
+  else
+  {
+    Serial.print("conneting to saved wifi");
+    apClient(wifi);
+    
+  }
+}
+
 void setup()
 {
+  EEPROM.begin(sizeof(saved_wifi) + 1);
   Serial.begin(9600);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(ssid, password);
+  startWiFi();
   server.on("/", homePage);
   server.on("/connect", HTTP_GET, connectToWiFiPage);
   server.on("/connect", HTTP_POST, handleConnect);
