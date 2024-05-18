@@ -1,6 +1,6 @@
 # 🌦️ atNowWeatherService 🌡️
 
-This project aims to create a website that allows users to check the temperature, pressure, and humidity in real-time using small i2c sensors with esp866. The environmental data can be accessed either through a web application or via an API. Additionally, the project will generate analysis reports and charts based on the collected data.
+This project aims to create a website that allows users to check the temperature, pressure, and humidity in real-time using small i2c sensors with esp2866. The environmental data can be accessed either through a web application or via an API. Additionally, the project will generate analysis reports and charts based on the collected data.
 
 ## Technology Stack
 
