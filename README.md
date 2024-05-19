@@ -35,6 +35,10 @@ The project utilizes ESP2688 microcontroller with built-in Wi-Fi and the followi
   - Pressure Measurement Accuracy: ±0.12hPa @25°C
 
 ## In Progress
+ - **Restructuring to many .cpp and .h file** 
+  
+  
+
   - **HTTPS SERVER ON ESP**:
   Now the device starts in AP mode with the given name and password set in the program.
   At the address 192.168.1.1 we have a service that allows you to log in to the selected Wi-Fi network.
